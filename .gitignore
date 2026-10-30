@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.local
+*.local
+*.tsbuildinfo
+.DS_Store
+qa-*.png
+desktop-home.png
+edge-test.png
+.edge-qa*
