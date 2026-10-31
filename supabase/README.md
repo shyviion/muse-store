@@ -1,6 +1,6 @@
 # Supabase setup for MUSE STORE
 
-1. Create a Supabase project. In **SQL Editor**, run `migrations/202610300001_initial.sql`, then `seed.sql`. The seed creates 14 categories and 24 editable products.
+1. Create a Supabase project. In **SQL Editor**, run `migrations/202610300001_initial.sql`, then `migrations/202610310001_product_variants.sql`, then `seed.sql`. The seed creates 14 categories and 24 editable products.
 2. Copy `.env.example` to `.env.local` at the project root. Fill in the project URL and **anon/publishable** key from **Project Settings → API**. Restart the Vite server after changing the file. Never put the service role key in a `VITE_` variable.
 3. In **Authentication → Users**, create the initial admin user with an email and a strong password. The signup trigger creates a customer profile. In **SQL Editor**, promote that specific user using a privileged query:
 
@@ -16,3 +16,5 @@
 Guest checkout calls the `place_order` database function. It uses the price in the database, locks inventory rows, validates quantity and selected options, and creates the order in one transaction. Cancelling an order restores inventory. No payment credentials are stored or processed.
 
 When environment variables are absent, the storefront uses local preview data. With valid Supabase variables, the storefront reads the database directly and never substitutes preview products for a failed request.
+
+Existing projects: follow [the color/size upgrade guide](VARIANT_UPGRADE.md). Run only the new migration and deploy the updated frontend; existing products and orders are preserved.

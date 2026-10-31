@@ -24,7 +24,15 @@ export interface ProductImage {
   alt_text: string | null
   sort_order: number
   is_primary: boolean
+  color?: string | null
+  is_color_primary?: boolean
   created_at: string
+}
+
+export interface ProductVariantInput {
+  size: string | null
+  color: string | null
+  stock: number | null
 }
 
 export interface ProductVariant {
@@ -34,6 +42,7 @@ export interface ProductVariant {
   size: string | null
   color: string | null
   stock: number | null
+  is_active?: boolean
 }
 
 export interface Product {
@@ -54,6 +63,7 @@ export interface Product {
   images: string[]
   image_records: ProductImage[]
   variants: ProductVariant[]
+  variant_mode?: 'legacy' | 'tracked'
   sizes: string[]
   colors: string[]
   material: string | null

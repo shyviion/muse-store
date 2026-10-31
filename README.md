@@ -28,6 +28,7 @@ Nếu chưa cấu hình Supabase, cửa hàng hiển thị 24 sản phẩm xem t
    Chỉ dùng key công khai trong frontend. Không đưa `service_role` hoặc secret key vào `VITE_*`, source code hoặc Git.
 
 2. Trong SQL Editor của chính dự án, chạy toàn bộ [migration](supabase/migrations/202610300001_initial.sql). Migration tạo bảng, bucket `muse-assets`, RLS, chính sách Storage, hàm đặt hàng có kiểm tra tồn kho tại database và trigger hoàn kho khi hủy đơn.
+   Sau đó chạy [migration màu–size](supabase/migrations/202610310001_product_variants.sql).
 3. Chạy [seed](supabase/seed.sql) trong SQL Editor. Seed tạo 14 danh mục, 12 sản phẩm thời trang, 12 mỹ phẩm, ảnh riêng cho từng sản phẩm, banner và nội dung mặc định. Chạy lại seed sẽ bỏ qua bản ghi đã tồn tại, nên các chỉnh sửa của Admin không bị ghi đè.
 4. Trong **Authentication → Users**, tạo tài khoản bằng email và mật khẩu mạnh. Không có form đăng ký Admin công khai.
 5. Trong SQL Editor, cấp quyền Admin cho đúng tài khoản vừa tạo. Thay email mẫu bằng email thực tế:
@@ -50,9 +51,15 @@ Nếu chưa cấu hình Supabase, cửa hàng hiển thị 24 sản phẩm xem t
 
 6. Khởi động lại Vite sau khi đổi `.env.local` để nhận biến môi trường mới. Truy cập `/admin/login` và đăng nhập bằng email, mật khẩu đã tạo.
 
+### Cập nhật website đang có sản phẩm
+
+Không cần cài lại dự án hoặc tạo lại database. Xem [hướng dẫn cập nhật màu–size](supabase/VARIANT_UPGRADE.md): chạy duy nhất migration mới trên dự án Supabase hiện có, rồi build và triển khai code mới. Không chạy lại migration khởi tạo hoặc seed khi cập nhật.
+
 ### Quản trị sản phẩm
 
 Tại `/admin`, chọn **Thêm sản phẩm**. Điền thông tin, chọn loại sản phẩm và danh mục tương ứng, thêm giá và tồn kho. Có thể chọn nhiều ảnh JPG, PNG, WebP hoặc AVIF (mỗi ảnh tối đa 10 MB), chọn ảnh đại diện, xem trước và **Đăng sản phẩm**. Ảnh được lưu trong Supabase Storage; thông tin sản phẩm và quan hệ ảnh nằm trong PostgreSQL. Sản phẩm xuất hiện trên cửa hàng khi trạng thái là **Đang hiển thị**. Nút **Lưu nháp** giữ sản phẩm khỏi trang khách hàng.
+
+Với thời trang, thêm các màu và size trong phần **Chi tiết thời trang** rồi nhập bảng tồn kho từng tổ hợp. Tải ảnh ở nhóm màu tương ứng hoặc gán màu cho ảnh đã có; mỗi màu chọn được một ảnh chính. Tổng tồn kho được cộng tự động. Sản phẩm cũ giữ tồn kho chung cho đến khi Admin bật **Quản lý tồn kho theo màu và size** và nhập đủ bảng số lượng.
 
 Các trang quản trị khác cho phép sửa/ẩn/xóa sản phẩm, điều chỉnh tồn kho, quản lý danh mục, cập nhật trạng thái đơn hàng, xem khách hàng đã có tài khoản và sửa nội dung website/banner. Trong **Website & banner**, Admin có thể tải ảnh hero mới và thay nội dung quảng bá; ảnh được lưu trên Supabase Storage. Dashboard tính số liệu từ các bản ghi hiện có.
 

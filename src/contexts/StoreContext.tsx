@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { isConfigured, listBanners, listCategories, listProducts, supabase } from '../services/backend'
 import { sampleCategories, sampleProducts } from '../data/sample'
+import { cartStockError, colorImages } from '../utils/variants'
 import type { Banner, Category, Product } from '../types'
 
 export interface CartLine {
@@ -94,14 +95,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   const addToCart = useCallback((product: Product, quantity = 1, size?: string, color?: string) => {
-    if (product.stock < 1) { notify('Sản phẩm hiện đã hết hàng'); return false }
-    const key = `${product.id}:${size || ''}:${color || ''}`
-    const currentCount = cart.filter(line => line.productId === product.id).reduce((sum, line) => sum + line.quantity, 0)
-    if (currentCount + quantity > product.stock) { notify(`Chỉ còn ${product.stock} sản phẩm trong kho`); return false }
+    const key = JSON.stringify([product.id, size || null, color || null])
+    const proposed = cart.filter(line => line.productId === product.id)
+    const existing = proposed.find(line => line.key === key || (line.size === size && line.color === color))
+    const next = existing ? proposed.map(line => line === existing ? { ...line, quantity: line.quantity + quantity } : line) : [...proposed, { size, color, quantity }]
+    const error = cartStockError(product, next)
+    if (error) { notify(error); return false }
     setCart(lines => {
-      const current = lines.find(line => line.key === key)
-      if (current) return lines.map(line => line.key === key ? { ...line, quantity: line.quantity + quantity } : line)
-      return [...lines, { key, productId: product.id, slug: product.slug, name: product.name, image: product.cover_image || product.images[0] || '', price: product.price, size, color, quantity }]
+      const current = lines.find(line => line.productId === product.id && line.size === size && line.color === color)
+      if (current) return lines.map(line => line === current ? { ...line, quantity: line.quantity + quantity } : line)
+      return [...lines, { key, productId: product.id, slug: product.slug, name: product.name, image: colorImages(product, color)[0] || '', price: product.price, size, color, quantity }]
     })
     notify('Đã thêm vào giỏ hàng')
     return true
@@ -111,8 +114,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const target = cart.find(line => line.key === key)
     if (!target) return
     const product = products.find(item => item.id === target.productId)
-    const otherCount = cart.filter(line => line.productId === target.productId && line.key !== key).reduce((sum, line) => sum + line.quantity, 0)
-    if (product && quantity + otherCount > product.stock) { notify(`Chỉ còn ${product.stock} sản phẩm trong kho`); return }
+    if (!product) { notify('Sản phẩm không còn được bán.'); return }
+    const error = cartStockError(product, cart.filter(line => line.productId === target.productId).map(line => line.key === key ? { ...line, quantity } : line))
+    if (error) { notify(error); return }
     setCart(lines => lines.map(line => line.key === key ? { ...line, quantity: Math.max(1, quantity) } : line))
   }, [cart, products, notify])
 

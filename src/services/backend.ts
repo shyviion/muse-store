@@ -1,9 +1,10 @@
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js'
 import { sampleBanners, sampleCategories, sampleProducts, sampleSettings } from '../data/sample'
+import { validateOptions } from '../utils/variants'
 import type {
   Banner, BannerInput, Category, CategoryInput, DashboardStats, Order,
   OrderStatus, PlaceOrderInput, Product, ProductFilters, ProductImage,
-  ProductInput, Profile, SiteSettings,
+  ProductInput, ProductVariantInput, Profile, SiteSettings,
 } from '../types'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -44,6 +45,7 @@ function normalizeProduct(raw: any): Product {
     images: urls,
     image_records: imageRecords,
     variants: raw.variants ?? raw.product_variants ?? [],
+    variant_mode: raw.variant_mode ?? 'legacy',
     sizes: raw.sizes ?? [],
     colors: raw.colors ?? [],
     skin_types: raw.skin_types ?? [],
@@ -235,6 +237,11 @@ export async function saveProduct(input: ProductInput, id?: string): Promise<Pro
   for (const field of fields) {
     if (input[field] !== undefined) payload[field] = input[field]
   }
+  if (id && input.stock !== undefined) {
+    const { data: current, error } = await api.from('products').select('variant_mode').eq('id', id).single()
+    fail(error)
+    if (current?.variant_mode === 'tracked') throw new Error('Hãy cập nhật tồn kho từng màu–size trong trang chỉnh sửa sản phẩm.')
+  }
   if (input.cover_image === undefined && input.images?.length) payload.cover_image = input.images[0]
   if (!id && input.status === undefined) payload.status = 'draft'
   if (input.is_sale === undefined && input.original_price !== undefined) {
@@ -245,6 +252,18 @@ export async function saveProduct(input: ProductInput, id?: string): Promise<Pro
     : await api.from('products').insert(payload).select('slug').single()
   fail(result.error)
   const product = await getProduct(result.data!.slug)
+  if (!product) throw new Error('Không tìm thấy sản phẩm vừa lưu.')
+  return product
+}
+
+export async function saveProductEditor(input: ProductInput, id: string, expectedUpdatedAt: string, variants: ProductVariantInput[] | null, images: ProductImage[]): Promise<Product> {
+  if (!validateOptions(input.colors ?? []) || !validateOptions(input.sizes ?? [])) throw new Error('Màu và size không được trùng hoặc để trống.')
+  const { data, error } = await client().rpc('save_product_editor', {
+    _id: id, _product: input, _expected_updated_at: expectedUpdatedAt,
+    _variants: variants, _images: images.map(image => ({ id: image.id, color: image.color || null, is_primary: image.is_primary, is_color_primary: Boolean(image.is_color_primary) })),
+  })
+  fail(error)
+  const product = await getProduct(data.slug)
   if (!product) throw new Error('Không tìm thấy sản phẩm vừa lưu.')
   return product
 }
@@ -281,7 +300,7 @@ export const uploadProductImage = (file: File): Promise<string> => uploadContent
 export const uploadCategoryImage = (file: File): Promise<string> => uploadContentImage(file, 'categories')
 export const uploadBannerImage = (file: File): Promise<string> => uploadContentImage(file, 'banners')
 
-export async function uploadProductImages(files: File[], productId: string): Promise<ProductImage[]> {
+export async function uploadProductImages(files: File[], productId: string, deferCover = false): Promise<ProductImage[]> {
   const api = client()
   const { data: existing, error: existingError } = await api.from('product_images')
     .select('id,is_primary,sort_order').eq('product_id', productId)
@@ -291,7 +310,7 @@ export async function uploadProductImages(files: File[], productId: string): Pro
   let needsPrimary = !(existing ?? []).some((item) => item.is_primary)
   for (const file of files) {
     const asset = await uploadAsset(file, 'products')
-    const isPrimary = needsPrimary
+    const isPrimary = needsPrimary && !deferCover
     const { data, error } = await api.from('product_images').insert({
       product_id: productId,
       url: asset.url,
