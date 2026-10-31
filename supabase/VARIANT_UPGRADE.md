@@ -19,9 +19,13 @@ Không chạy lại migration khởi tạo, không reset database, không tạo 
 - Sản phẩm đã chuyển sang tồn kho riêng được sửa số lượng trong bảng màu–size. Trang tổng quan tồn kho dẫn đến trang sửa sản phẩm để tránh ghi đè tổng số lượng.
 - Nếu có khách đặt hàng hoặc admin khác lưu khi bạn đang sửa, thao tác lưu sẽ báo dữ liệu đã thay đổi. Tải lại trang rồi sửa trên số lượng mới nhất.
 
-### Số lượng sản phẩm theo màu
+### Nhập trực tiếp số lượng từng màu
 
-Trong phần Chi tiết thời trang, mỗi màu có mục số lượng riêng. Nếu không có size hoặc chỉ có một size, nhập trực tiếp số lượng của màu đó. Nếu có nhiều size, nhập số lượng vào bảng màu–size; tổng của mỗi màu được cộng và hiển thị tự động. Các ô chưa nhập được ghi rõ Chưa nhập đủ. Tính năng sử dụng dữ liệu biến thể hiện có, không cần chạy migration mới.
+Chạy thêm migration [202610310003_color_quantities.sql](migrations/202610310003_color_quantities.sql) trước khi triển khai code mới. Migration thêm chế độ số lượng theo màu, giữ nguyên sản phẩm và số lượng đã có.
+
+Trong admin, chọn **Quản lý số lượng → Theo màu — nhập số lượng từng màu**. Ví dụ sản phẩm A có Đen 2 cái, Trắng 1 cái: nhập 2 và 1 vào hai ô tương ứng rồi nhấn Lưu. Bạn vẫn có thể khai báo S, M, L; tất cả size của cùng màu dùng chung số lượng của màu đó. Khách mua Đen–S hoặc Đen–M đều trừ vào 2 cái màu Đen. Tổng kho là 3 cái.
+
+Sản phẩm mới mặc định dùng chế độ này. Sản phẩm cũ đang quản lý từng màu–size giữ chế độ cũ; có thể chuyển sang Theo màu, kiểm tra số lượng mỗi màu rồi lưu. Hệ thống không tự chia số lượng màu cho từng size. Nếu cần theo dõi số lượng thực tế từng size, chọn **Theo từng màu và size** và nhập bảng chi tiết.
 
 ## Dữ liệu và đơn hàng cũ
 

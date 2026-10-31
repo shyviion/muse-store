@@ -64,6 +64,7 @@ export interface Product {
   image_records: ProductImage[]
   variants: ProductVariant[]
   variant_mode?: 'legacy' | 'tracked'
+  stock_by_color?: boolean
   sizes: string[]
   colors: string[]
   material: string | null

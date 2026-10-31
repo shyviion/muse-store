@@ -59,6 +59,34 @@ try {
   await query("update orders set status='cancelled' where id=$1",[beautyOrder.id])
   assert.equal((await product(beauty)).stock,beautyStock)
   await assert.rejects(place([{product_id:beauty,size:'M',quantity:1}]),/không hợp lệ/)
+  // Direct per-color quantities, even with three selectable sizes.
+  const colorProduct = '20000000-0000-4000-8000-000000000002'
+  const colorImages = await imageRecords(colorProduct)
+  const colorData = {colors:['Đen','Trắng'],sizes:['S','M','L'],stock_by_color:true}
+  const colorRows = [{color:'Đen',size:null,stock:2},{color:'Trắng',size:null,stock:1}]
+  const colorSaved = await editor(colorProduct,colorData,colorRows,colorImages)
+  assert.deepEqual(colorSaved.sizes,['S','M','L'])
+  assert.equal(colorSaved.stock,3)
+  assert.equal(colorSaved.stock_by_color,true)
+  const colorOrder = await place([{product_id:colorProduct,color:'Đen',size:'S',quantity:1},{product_id:colorProduct,color:'Đen',size:'M',quantity:1}])
+  assert.equal((await product(colorProduct)).stock,1)
+  await assert.rejects(place([{product_id:colorProduct,color:'Đen',size:'L',quantity:1}]),/không đủ tồn kho/)
+  await query("update orders set status='cancelled' where id=$1",[colorOrder.id])
+  assert.equal((await product(colorProduct)).stock,3)
+  // Combined sizes must draw from one shared color pool and roll back together.
+  await assert.rejects(place([{product_id:colorProduct,color:'Đen',size:'S',quantity:2},{product_id:colorProduct,color:'Đen',size:'M',quantity:1}]),/không đủ tồn kho/)
+  assert.equal((await product(colorProduct)).stock,3)
+  await assert.rejects(editor(colorProduct,{...colorData,sizes:['S','s']},colorRows,colorImages),/Size không được trùng/)
+  await assert.rejects(place([{product_id:colorProduct,color:'Đen',size:'XL',quantity:1}]),/không hợp lệ/)
+  const pendingColorOrder=await place([{product_id:colorProduct,color:'Trắng',size:'M',quantity:1}])
+  const perSizeRows=colorData.colors.flatMap(color=>colorData.sizes.map(size=>({color,size,stock:1})))
+  await editor(colorProduct,{...colorData,stock_by_color:false},perSizeRows,colorImages)
+  await query("update orders set status='cancelled' where id=$1",[pendingColorOrder.id])
+  assert.equal((await product(colorProduct)).stock,7,'Color orders restore correctly after changing to size inventory')
+  const pendingSizeOrder=await place([{product_id:colorProduct,color:'Đen',size:'L',quantity:1}])
+  await editor(colorProduct,colorData,colorRows,colorImages)
+  await query("update orders set status='cancelled' where id=$1",[pendingSizeOrder.id])
+  assert.equal((await product(colorProduct)).stock,4,'Size orders restore to the shared pool after changing to color inventory')
   // Two requests competing for the final unit must yield one successful order.
   const lastUnit = matrix.map(v=>({...v,stock:v.color==='Đen'&&v.size==='M'?1:0}))
   await editor(id,{colors,sizes},lastUnit,unassigned)

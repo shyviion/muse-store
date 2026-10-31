@@ -18,6 +18,7 @@ export async function setup() {
   await db.exec(await readFile(new URL('../supabase/seed.sql', import.meta.url), 'utf8'))
   await db.exec(await readFile(new URL('../supabase/migrations/202610310001_product_variants.sql', import.meta.url), 'utf8'))
   await db.exec(await readFile(new URL('../supabase/migrations/202610310002_clothing_sets.sql', import.meta.url), 'utf8'))
+  await db.exec(await readFile(new URL('../supabase/migrations/202610310003_color_quantities.sql', import.meta.url), 'utf8'))
   await query('insert into auth.users(id,email,raw_user_meta_data) values($1,$2,$3)', [adminId, 'admin@test.invalid', '{}'])
   await query("update profiles set role='admin' where id=$1", [adminId])
   await query("select set_config('request.jwt.claim.sub',$1,false)", [adminId])

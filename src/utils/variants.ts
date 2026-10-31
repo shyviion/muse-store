@@ -8,7 +8,7 @@ export function variantStock(product: Product, size?: string | null, color?: str
   if (product.sizes.length ? !size || !product.sizes.includes(size) : Boolean(size)) return 0
   if (product.colors.length ? (color ? !product.colors.includes(color) : product.kind === 'fashion' || hasVariants(product)) : Boolean(color)) return 0
   if (!hasVariants(product)) return product.stock
-  const variant = activeVariants(product).find(item => optionKey(item.color, item.size) === optionKey(color, size))
+  const variant = activeVariants(product).find(item => optionKey(item.color, item.size) === optionKey(color, product.stock_by_color ? null : size))
   if (!variant) return 0
   return product.variant_mode === 'tracked'
     ? Math.min(product.stock, variant.stock ?? 0)
@@ -48,7 +48,7 @@ export function cartStockError(product: Product, lines: Array<{ size?: string; c
   let total = 0
   for (const line of lines) {
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 20) return 'Mỗi lựa chọn chỉ được đặt từ 1 đến 20 sản phẩm.'
-    const key = optionKey(line.color, line.size)
+    const key = optionKey(line.color, product.stock_by_color ? null : line.size)
     const count = (counts.get(key) ?? 0) + line.quantity
     counts.set(key, count)
     total += line.quantity

@@ -28,7 +28,7 @@ Nếu chưa cấu hình Supabase, cửa hàng hiển thị 24 sản phẩm xem t
    Chỉ dùng key công khai trong frontend. Không đưa `service_role` hoặc secret key vào `VITE_*`, source code hoặc Git.
 
 2. Trong SQL Editor của chính dự án, chạy toàn bộ [migration](supabase/migrations/202610300001_initial.sql). Migration tạo bảng, bucket `muse-assets`, RLS, chính sách Storage, hàm đặt hàng có kiểm tra tồn kho tại database và trigger hoàn kho khi hủy đơn.
-   Sau đó chạy [migration màu–size](supabase/migrations/202610310001_product_variants.sql) và [migration Bộ quần áo](supabase/migrations/202610310002_clothing_sets.sql).
+   Sau đó chạy [migration màu–size](supabase/migrations/202610310001_product_variants.sql) , [migration Bộ quần áo](supabase/migrations/202610310002_clothing_sets.sql) và [migration số lượng từng màu](supabase/migrations/202610310003_color_quantities.sql).
 3. Chạy [seed](supabase/seed.sql) trong SQL Editor. Seed tạo 15 danh mục, 12 sản phẩm thời trang, 12 mỹ phẩm, ảnh riêng cho từng sản phẩm, banner và nội dung mặc định. Chạy lại seed sẽ bỏ qua bản ghi đã tồn tại, nên các chỉnh sửa của Admin không bị ghi đè.
 4. Trong **Authentication → Users**, tạo tài khoản bằng email và mật khẩu mạnh. Không có form đăng ký Admin công khai.
 5. Trong SQL Editor, cấp quyền Admin cho đúng tài khoản vừa tạo. Thay email mẫu bằng email thực tế:
@@ -60,6 +60,8 @@ Danh mục **Bộ quần áo** nằm trong **Thời trang**. Khi đăng bộ, ch
 ### Quản trị sản phẩm
 
 Tại `/admin`, chọn **Thêm sản phẩm**. Điền thông tin, chọn loại sản phẩm và danh mục tương ứng, thêm giá và tồn kho. Có thể chọn nhiều ảnh JPG, PNG, WebP hoặc AVIF (mỗi ảnh tối đa 10 MB), chọn ảnh đại diện, xem trước và **Đăng sản phẩm**. Ảnh được lưu trong Supabase Storage; thông tin sản phẩm và quan hệ ảnh nằm trong PostgreSQL. Sản phẩm xuất hiện trên cửa hàng khi trạng thái là **Đang hiển thị**. Nút **Lưu nháp** giữ sản phẩm khỏi trang khách hàng.
+
+Để nhập trực tiếp ví dụ Đen 2 cái, Trắng 1 cái, chọn **Quản lý số lượng → Theo màu — nhập số lượng từng màu**. Các size cùng màu dùng chung số lượng này. Đọc [hướng dẫn nâng cấp](supabase/VARIANT_UPGRADE.md) để chạy migration số lượng màu mới.
 
 Với thời trang, thêm các màu và size trong phần **Chi tiết thời trang** rồi nhập bảng tồn kho từng tổ hợp. Tải ảnh ở nhóm màu tương ứng hoặc gán màu cho ảnh đã có; mỗi màu chọn được một ảnh chính. Tổng tồn kho được cộng tự động. Sản phẩm cũ giữ tồn kho chung cho đến khi Admin bật **Quản lý tồn kho theo màu và size** và nhập đủ bảng số lượng.
 
