@@ -56,3 +56,13 @@ export function cartStockError(product: Product, lines: Array<{ size?: string; c
   }
   return total > product.stock ? 'Tổng số lượng vượt quá tồn kho sản phẩm.' : null
 }
+
+// A legacy product with exactly one color has an unambiguous color quantity.
+// Keep multi-color legacy stock unallocated until the admin enters each amount.
+export function initialVariantStocks(product: Product): Record<string, string> {
+  const variants = activeVariants(product)
+  if (product.variant_mode !== 'tracked' && !variants.length && product.colors.length === 1) {
+    return { [optionKey(product.colors[0], null)]: String(product.stock) }
+  }
+  return Object.fromEntries(variants.map(item => [optionKey(item.color, item.size), item.stock === null ? '' : String(item.stock)]))
+}

@@ -31,9 +31,9 @@ export default function ProductOptionsEditor({ colors, sizes, tracked, locked, s
     <OptionList label="Màu sắc" values={colors} onChange={onColors} placeholder="Đen, Kem, Hồng nude" />
     <OptionList label="Kích thước" values={sizes} onChange={onSizes} placeholder="S, M, L hoặc 36, 37, 38" />
     <label className="admin-variant-toggle"><input type="checkbox" checked={tracked} disabled={locked} onChange={event => onTracked(event.target.checked)} /> Quản lý tồn kho theo màu và size</label>
-    {!tracked && <p>Sản phẩm đang dùng tồn kho chung. Bật tùy chọn trên để nhập số lượng riêng cho từng màu.</p>}
-    {tracked && <>
-      <label className="admin-stock-mode">Quản lý số lượng<select aria-label="Quản lý số lượng" value={stockByColor ? 'color' : 'variant'} onChange={event => onStockMode(event.target.value === 'color')}><option value="color">Theo màu — nhập số lượng từng màu</option><option value="variant">Theo từng màu và size</option></select></label>
+    {!tracked && <p>Sản phẩm đang dùng tồn kho chung. Sửa số lượng ở ô màu bên dưới rồi nhấn Lưu để quản lý riêng từng màu.</p>}
+    {(tracked || colors.length > 0) && <>
+      <label className="admin-stock-mode">Quản lý số lượng<select aria-label="Quản lý số lượng" value={stockByColor ? 'color' : 'variant'} onChange={event => { onTracked(true); onStockMode(event.target.value === 'color') }}><option value="color">Theo màu — nhập số lượng từng màu</option><option value="variant">Theo từng màu và size</option></select></label>
       {stockByColor && <p>Ví dụ: Đen 2 cái, Trắng 1 cái. Các size của cùng một màu dùng chung số lượng này.</p>}
       {colors.length > 0 && <section className="admin-color-stock-section" aria-label="Số lượng sản phẩm theo màu">
         <h3>Số lượng sản phẩm theo màu</h3>
@@ -42,7 +42,7 @@ export default function ProductOptionsEditor({ colors, sizes, tracked, locked, s
           <strong>{color}</strong>
           {multipleSizes
             ? <><output aria-label={'Tổng số lượng màu ' + color}>{total === null ? 'Chưa nhập đủ' : total}</output><small>{'Tổng các size: ' + sizes.join(', ')}</small></>
-            : <><label htmlFor={'color-stock-' + encodeURIComponent(color)}>Số lượng sản phẩm</label><input id={'color-stock-' + encodeURIComponent(color)} aria-label={'Số lượng màu ' + color} type="number" min="0" max="2147483647" step="1" placeholder="Nhập số lượng" value={stocks[optionKey(color, sizeOptions[0])] ?? ''} onChange={event => onStock(optionKey(color, sizeOptions[0]), event.target.value)} />{!stockByColor && sizes.length === 1 && <small>{'Size: ' + sizes[0]}</small>}</>}
+            : <><label htmlFor={'color-stock-' + encodeURIComponent(color)}>Số lượng sản phẩm</label><input id={'color-stock-' + encodeURIComponent(color)} aria-label={'Số lượng màu ' + color} type="number" min="0" max="2147483647" step="1" placeholder="Nhập số lượng" value={stocks[optionKey(color, sizeOptions[0])] ?? ''} onChange={event => { onTracked(true); onStock(optionKey(color, sizeOptions[0]), event.target.value) }} />{!stockByColor && sizes.length === 1 && <small>{'Size: ' + sizes[0]}</small>}</>}
           {total === 0 && <small className="admin-color-stock-empty">Hết hàng</small>}
         </div>)}</div>
       </section>}
@@ -52,7 +52,7 @@ export default function ProductOptionsEditor({ colors, sizes, tracked, locked, s
           <caption>{(colors.length || 1) * (stockByColor ? 1 : sizes.length || 1)} mục tồn kho</caption>
           <thead><tr><th>MÀU / SIZE</th>{(!stockByColor && sizes.length ? sizes : ['Số lượng']).map(size => <th key={size}>{size}</th>)}</tr></thead>
           <tbody>{(colors.length ? colors : [null]).map(color => <tr key={color || 'shared'}>
-            <th>{color || 'Một màu'}</th>{sizeOptions.map(size => <td key={size || 'shared'}><input aria-label={'Tồn kho ' + (color || 'Một màu') + ' – ' + (size || 'Một size')} type="number" min="0" max="2147483647" step="1" placeholder="Nhập số lượng" value={stocks[optionKey(color, size)] ?? ''} onChange={event => onStock(optionKey(color, size), event.target.value)} /></td>)}
+            <th>{color || 'Một màu'}</th>{sizeOptions.map(size => <td key={size || 'shared'}><input aria-label={'Tồn kho ' + (color || 'Một màu') + ' – ' + (size || 'Một size')} type="number" min="0" max="2147483647" step="1" placeholder="Nhập số lượng" value={stocks[optionKey(color, size)] ?? ''} onChange={event => { onTracked(true); onStock(optionKey(color, size), event.target.value) }} /></td>)}
           </tr>)}</tbody>
         </table></div>
       </>}

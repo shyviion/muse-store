@@ -7,7 +7,7 @@ import { adminListBanners, deleteBanner, deleteCategory, deleteProduct, getCurre
 import type { Banner, BannerInput, Category, CategoryInput, DashboardStats, Order, OrderStatus, Product, ProductImage, ProductInput, Profile, SiteSettings } from '../types'
 import ProductOptionsEditor from './ProductOptionsEditor'
 import ProductImagesEditor, { type ImageDraft } from './ProductImagesEditor'
-import { optionKey, validateOptions, variantMatrix } from '../utils/variants'
+import { initialVariantStocks, optionKey, validateOptions, variantMatrix } from '../utils/variants'
 import './admin.css'
 
 const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0)
@@ -117,7 +117,7 @@ function ProductFormPage() {
   const [stocks, setStocks] = useState<Record<string, string>>({}); const [expectedUpdatedAt, setExpectedUpdatedAt] = useState('')
   const [loading, setLoading] = useState(editing); const [error, setError] = useState(''); const [preview, setPreview] = useState(false)
   const [uploadMessage, setUploadMessage] = useState('')
-  useEffect(() => { let live = true; setPersistedId(id || null); Promise.all([listCategories(), editing ? listAdminProducts() : Promise.resolve([] as Product[])]).then(([cats, products]) => { if (!live) return; setCategories(cats); if (id) { const product = products.find((item) => item.id === id); if (!product) { setError('Không tìm thấy sản phẩm.'); return }; const { category, image_records, variants, sold_count, created_at, updated_at, id: productId, ...fields } = product; setStockByColor(product.variant_mode !== 'tracked' || Boolean(product.stock_by_color)); setTracked(product.variant_mode === 'tracked'); setTrackingLocked(product.variant_mode === 'tracked'); setExpectedUpdatedAt(product.updated_at); setStocks(Object.fromEntries(variants.filter(item => item.is_active !== false).map(item => [optionKey(item.color, item.size), item.stock === null ? '' : String(item.stock)]))); void category; void sold_count; void created_at; void updated_at; void productId; setForm(fields); setExistingImages(image_records) } }).catch((err) => { if (live) setError(messageOf(err)) }).finally(() => { if (live) setLoading(false) }); return () => { live = false } }, [id, editing])
+  useEffect(() => { let live = true; setPersistedId(id || null); Promise.all([listCategories(), editing ? listAdminProducts() : Promise.resolve([] as Product[])]).then(([cats, products]) => { if (!live) return; setCategories(cats); if (id) { const product = products.find((item) => item.id === id); if (!product) { setError('Không tìm thấy sản phẩm.'); return }; const { category, image_records, variants, sold_count, created_at, updated_at, id: productId, ...fields } = product; setStockByColor(product.variant_mode !== 'tracked' || Boolean(product.stock_by_color)); setTracked(product.variant_mode === 'tracked'); setTrackingLocked(product.variant_mode === 'tracked'); setExpectedUpdatedAt(product.updated_at); setStocks(initialVariantStocks(product)); void variants; void category; void sold_count; void created_at; void updated_at; void productId; setForm(fields); setExistingImages(image_records) } }).catch((err) => { if (live) setError(messageOf(err)) }).finally(() => { if (live) setLoading(false) }); return () => { live = false } }, [id, editing])
   function setField(key: keyof ProductInput, value: unknown) { setForm((current) => ({ ...current, [key]: value } as ProductInput)) }
   function changeColors(colors: string[]) {
     setField('colors', colors)

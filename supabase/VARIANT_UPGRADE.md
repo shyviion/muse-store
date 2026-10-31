@@ -23,7 +23,9 @@ Không chạy lại migration khởi tạo, không reset database, không tạo 
 
 Chạy thêm migration [202610310003_color_quantities.sql](migrations/202610310003_color_quantities.sql) trước khi triển khai code mới. Migration thêm chế độ số lượng theo màu, giữ nguyên sản phẩm và số lượng đã có.
 
-Trong admin, chọn **Quản lý số lượng → Theo màu — nhập số lượng từng màu**. Ví dụ sản phẩm A có Đen 2 cái, Trắng 1 cái: nhập 2 và 1 vào hai ô tương ứng rồi nhấn Lưu. Bạn vẫn có thể khai báo S, M, L; tất cả size của cùng màu dùng chung số lượng của màu đó. Khách mua Đen–S hoặc Đen–M đều trừ vào 2 cái màu Đen. Tổng kho là 3 cái.
+Trong admin, chọn **Quản lý số lượng → Theo màu — nhập số lượng từng màu**. Ví dụ sản phẩm A có Đen 2 cái, Trắng 1 cái: nhập 2 và 1 vào hai ô tương ứng rồi nhấn Lưu. Với sản phẩm cũ, ô số lượng từng màu hiển thị ngay; sửa ô rồi nhấn Lưu sẽ tự bật quản lý kho theo màu. Nếu sản phẩm cũ chỉ có một màu và chưa phân bổ biến thể, ô đó hiển thị số lượng kho hiện có; nhiều màu thì cần nhập từng màu. Mở rồi lưu mà không sửa số lượng không tự chuyển đổi kho.
+
+Bạn vẫn có thể khai báo S, M, L; tất cả size của cùng màu dùng chung số lượng của màu đó. Khách mua Đen–S hoặc Đen–M đều trừ vào 2 cái màu Đen. Tổng kho là 3 cái.
 
 Sản phẩm mới mặc định dùng chế độ này. Sản phẩm cũ đang quản lý từng màu–size giữ chế độ cũ; có thể chuyển sang Theo màu, kiểm tra số lượng mỗi màu rồi lưu. Hệ thống không tự chia số lượng màu cho từng size. Nếu cần theo dõi số lượng thực tế từng size, chọn **Theo từng màu và size** và nhập bảng chi tiết.
 
