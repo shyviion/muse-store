@@ -28,8 +28,8 @@ Nếu chưa cấu hình Supabase, cửa hàng hiển thị 24 sản phẩm xem t
    Chỉ dùng key công khai trong frontend. Không đưa `service_role` hoặc secret key vào `VITE_*`, source code hoặc Git.
 
 2. Trong SQL Editor của chính dự án, chạy toàn bộ [migration](supabase/migrations/202610300001_initial.sql). Migration tạo bảng, bucket `muse-assets`, RLS, chính sách Storage, hàm đặt hàng có kiểm tra tồn kho tại database và trigger hoàn kho khi hủy đơn.
-   Sau đó chạy [migration màu–size](supabase/migrations/202610310001_product_variants.sql).
-3. Chạy [seed](supabase/seed.sql) trong SQL Editor. Seed tạo 14 danh mục, 12 sản phẩm thời trang, 12 mỹ phẩm, ảnh riêng cho từng sản phẩm, banner và nội dung mặc định. Chạy lại seed sẽ bỏ qua bản ghi đã tồn tại, nên các chỉnh sửa của Admin không bị ghi đè.
+   Sau đó chạy [migration màu–size](supabase/migrations/202610310001_product_variants.sql) và [migration Bộ quần áo](supabase/migrations/202610310002_clothing_sets.sql).
+3. Chạy [seed](supabase/seed.sql) trong SQL Editor. Seed tạo 15 danh mục, 12 sản phẩm thời trang, 12 mỹ phẩm, ảnh riêng cho từng sản phẩm, banner và nội dung mặc định. Chạy lại seed sẽ bỏ qua bản ghi đã tồn tại, nên các chỉnh sửa của Admin không bị ghi đè.
 4. Trong **Authentication → Users**, tạo tài khoản bằng email và mật khẩu mạnh. Không có form đăng ký Admin công khai.
 5. Trong SQL Editor, cấp quyền Admin cho đúng tài khoản vừa tạo. Thay email mẫu bằng email thực tế:
 
@@ -54,6 +54,8 @@ Nếu chưa cấu hình Supabase, cửa hàng hiển thị 24 sản phẩm xem t
 ### Cập nhật website đang có sản phẩm
 
 Không cần cài lại dự án hoặc tạo lại database. Xem [hướng dẫn cập nhật màu–size](supabase/VARIANT_UPGRADE.md): chạy duy nhất migration mới trên dự án Supabase hiện có, rồi build và triển khai code mới. Không chạy lại migration khởi tạo hoặc seed khi cập nhật.
+
+Danh mục **Bộ quần áo** nằm trong **Thời trang**. Khi đăng bộ, chọn danh mục này, nhập giá cho cả bộ và quản lý ảnh, màu, size, tồn kho của cả bộ như một sản phẩm. Với website đang có dữ liệu, chạy [migration thêm Bộ quần áo](supabase/migrations/202610310002_clothing_sets.sql) một lần để thêm danh mục.
 
 ### Quản trị sản phẩm
 

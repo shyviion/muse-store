@@ -65,9 +65,9 @@ await context.route('https://variant-qa.invalid/**',async route=>{
 const base='http://127.0.0.1:5417'
 try {
   await page.goto(base+'/admin/products/new')
-  await page.getByPlaceholder('Ví dụ: Đầm lụa dáng midi').fill('Áo thử biến thể')
+  await page.getByPlaceholder('Ví dụ: Đầm lụa dáng midi').fill('Bộ quần áo thử biến thể')
   await page.getByPlaceholder('MUSE-F001').fill('QA-VARIANT')
-  await page.locator('select').filter({has:page.locator('option', {hasText:'Chọn danh mục'})}).selectOption({label:'Áo nữ'})
+  await page.locator('select').filter({has:page.locator('option', {hasText:'Chọn danh mục'})}).selectOption({label:'Bộ quần áo'})
   await page.getByPlaceholder('890000').fill('120000')
   await page.getByRole('textbox',{name:'Màu sắc',exact:true}).fill('Đen, Trắng, Kem')
   await page.getByRole('textbox',{name:'Màu sắc',exact:true}).press('Enter')
@@ -91,6 +91,11 @@ try {
   const imageRows=await query('select * from product_images where product_id=$1',[saved.id])
   assert.equal(imageRows.length,6)
   const blackPrimary=imageRows.find(image=>image.color==='Đen'&&image.is_color_primary).url
+  // Clothing sets appear in their own storefront filter and remain one product.
+  await page.goto(base+'/thoi-trang?category=bo-quan-ao')
+  await page.locator('.product-card').waitFor()
+  assert.equal(await page.locator('.product-card').count(),1)
+  assert.match(await page.locator('.product-card').innerText(),/Bộ quần áo thử biến thể/)
   // Open editor again, verify persisted matrix and assignments.
   await page.goto(base+'/admin/products/'+saved.id+'/edit')
   assert.equal(await page.getByRole('spinbutton',{name:'Tồn kho Trắng – S',exact:true}).inputValue(),'0')

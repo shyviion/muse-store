@@ -15,7 +15,8 @@ values
   ('10000000-0000-4000-8000-000000000011', 'beauty', 'kem-chong-nang', 'Kem chống nắng', 'Bảo vệ da nhẹ nhàng mỗi ngày.', 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=1000&q=85', 11, '2026-10-01T00:00:00Z'),
   ('10000000-0000-4000-8000-000000000012', 'beauty', 'tay-trang', 'Tẩy trang', 'Làm sạch dịu nhẹ cuối ngày.', 'https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=1000&q=85', 12, '2026-10-01T00:00:00Z'),
   ('10000000-0000-4000-8000-000000000013', 'beauty', 'mat-na', 'Mặt nạ', 'Một khoảng nghỉ cho làn da.', 'https://images.unsplash.com/photo-1739981248829-ac9d4a6fecfa?auto=format&fit=crop&w=1000&q=85', 13, '2026-10-01T00:00:00Z'),
-  ('10000000-0000-4000-8000-000000000014', 'beauty', 'cham-soc-co-the', 'Chăm sóc cơ thể', 'Chăm sóc bản thân từ những điều nhỏ.', 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1000&q=85', 14, '2026-10-01T00:00:00Z')
+  ('10000000-0000-4000-8000-000000000014', 'beauty', 'cham-soc-co-the', 'Chăm sóc cơ thể', 'Chăm sóc bản thân từ những điều nhỏ.', 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1000&q=85', 14, '2026-10-01T00:00:00Z'),
+  ('10000000-0000-4000-8000-000000000015', 'fashion', 'bo-quan-ao', 'Bộ quần áo', 'Những bộ áo và quần phối sẵn, bán trọn bộ với màu và size tương ứng.', '/fashion-editorial.png', 15, '2026-10-01T00:00:00Z')
 on conflict (id) do nothing;
 
 insert into public.products

@@ -3,7 +3,7 @@ import type { Banner, Category, Product, ProductKind, SiteSettings } from '../ty
 // Local preview data mirrors supabase/seed.sql. It is used only when Supabase is not configured.
 const categoryId = (n: number) => `10000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const productId = (n: number) => `20000000-0000-4000-8000-${String(n).padStart(12, '0')}`
-const image = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=85`
+const image = (id: string) => id.startsWith('/') ? id : `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=85`
 
 const categorySeeds: Array<[ProductKind, string, string, string]> = [
   ['fashion', 'ao-nu', 'Áo nữ', 'Những chiếc áo thanh lịch cho mọi khoảnh khắc.'],
@@ -20,6 +20,7 @@ const categorySeeds: Array<[ProductKind, string, string, string]> = [
   ['beauty', 'tay-trang', 'Tẩy trang', 'Làm sạch dịu nhẹ cuối ngày.'],
   ['beauty', 'mat-na', 'Mặt nạ', 'Một khoảng nghỉ cho làn da.'],
   ['beauty', 'cham-soc-co-the', 'Chăm sóc cơ thể', 'Chăm sóc bản thân từ những điều nhỏ.'],
+  ['fashion', 'bo-quan-ao', 'Bộ quần áo', 'Những bộ áo và quần phối sẵn, bán trọn bộ với màu và size tương ứng.'],
 ]
 
 const categoryImageIds = [
@@ -30,6 +31,7 @@ const categoryImageIds = [
   'photo-1707539160277-e39464517645', 'photo-1601049541289-9b1b7bbbfe19',
   'photo-1556228578-0d85b1a4d571', 'photo-1611930022073-b7a4ba5fcccd',
   'photo-1739981248829-ac9d4a6fecfa', 'photo-1620916566398-39f1143ab7be',
+  '/fashion-editorial.png',
 ]
 
 export const sampleCategories: Category[] = categorySeeds.map(([kind, slug, name, description], i) => ({
