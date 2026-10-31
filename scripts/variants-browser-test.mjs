@@ -71,9 +71,11 @@ try {
   await page.getByPlaceholder('890000').fill('120000')
   await page.getByRole('textbox',{name:'Màu sắc',exact:true}).fill('Đen, Trắng, Kem')
   await page.getByRole('textbox',{name:'Màu sắc',exact:true}).press('Enter')
+  await page.getByRole('spinbutton',{name:'Số lượng màu Đen',exact:true}).fill('9')
   await page.getByRole('textbox',{name:'Kích thước',exact:true}).fill('S, M, L')
   await page.getByRole('textbox',{name:'Kích thước',exact:true}).press('Enter')
   assert.equal(await page.locator('.admin-variant-table input').count(),9)
+  assert.equal(await page.getByLabel('Tổng số lượng màu Đen',{exact:true}).innerText(),'Chưa nhập đủ','Adding sizes must not distribute shared color stock automatically')
   // Duplicate options are rejected without changing the matrix.
   await page.getByRole('textbox',{name:'Màu sắc',exact:true}).fill('đen')
   await page.getByRole('textbox',{name:'Màu sắc',exact:true}).press('Enter')
@@ -82,6 +84,9 @@ try {
   for(const color of ['Đen','Trắng','Kem']) for(const size of ['S','M','L']) {
     await page.getByRole('spinbutton',{name:'Tồn kho '+color+' – '+size,exact:true}).fill(color==='Trắng' && size==='S'?'0':'3')
   }
+  assert.equal(await page.getByLabel('Tổng số lượng màu Đen',{exact:true}).innerText(),'9')
+  assert.equal(await page.getByLabel('Tổng số lượng màu Trắng',{exact:true}).innerText(),'6')
+  assert.equal(await page.getByLabel('Tổng số lượng màu Kem',{exact:true}).innerText(),'9')
   for(const color of ['Đen','Trắng','Kem']) await page.getByLabel('Thêm ảnh '+color,{exact:true}).setInputFiles([{name:color+'-1.png',mimeType:'image/png',buffer:png},{name:color+'-2.png',mimeType:'image/png',buffer:png}])
   await page.locator('.admin-color-gallery').filter({has:page.getByRole('heading',{name:'Đen',exact:true})}).getByRole('button',{name:'Làm ảnh chính màu Đen',exact:true}).nth(1).click()
   await page.getByRole('button',{name:'Đăng sản phẩm',exact:true}).first().click()
@@ -159,6 +164,25 @@ try {
   await page.locator('.add-cart-button').click()
   await page.goto(base+'/gio-hang')
   assert.equal(await page.locator('.cart-item').count(),1)
+  // Color-only stock inputs persist as real variants without a size.
+  await page.goto(base+'/admin/products/new')
+  await page.getByPlaceholder('Ví dụ: Đầm lụa dáng midi').fill('Sản phẩm tồn kho theo màu')
+  await page.getByPlaceholder('MUSE-F001').fill('QA-COLOR-STOCK')
+  await page.locator('select').filter({has:page.locator('option', {hasText:'Chọn danh mục'})}).selectOption({label:'Bộ quần áo'})
+  await page.getByPlaceholder('890000').fill('120000')
+  await page.getByRole('textbox',{name:'Màu sắc',exact:true}).fill('Đen, Trắng')
+  await page.getByRole('textbox',{name:'Màu sắc',exact:true}).press('Enter')
+  await page.getByRole('spinbutton',{name:'Số lượng màu Đen',exact:true}).fill('4')
+  await page.getByRole('spinbutton',{name:'Số lượng màu Trắng',exact:true}).fill('6')
+  for(const color of ['Đen','Trắng']) await page.getByLabel('Thêm ảnh '+color,{exact:true}).setInputFiles({name:color+'.png',mimeType:'image/png',buffer:png})
+  await page.getByRole('button',{name:'Đăng sản phẩm',exact:true}).first().click()
+  await page.waitForURL(base+'/admin/products')
+  const colorOnly=(await query("select to_jsonb(p) as value from products p where sku='QA-COLOR-STOCK'"))[0].value
+  assert.equal(colorOnly.stock,10)
+  const colorStocks=await query('select color,size,stock from product_variants where product_id=$1 and is_active order by stock',[colorOnly.id])
+  assert.deepEqual(colorStocks,[{color:'Đen',size:null,stock:4},{color:'Trắng',size:null,stock:6}])
+  await page.goto(base+'/admin/products/'+colorOnly.id+'/edit')
+  assert.equal(await page.getByRole('spinbutton',{name:'Số lượng màu Trắng',exact:true}).inputValue(),'6')
   assert.deepEqual(errors,[])
   console.log('PASS browser: admin 3×3 creation, duplicate validation, six color images, primary image, edit/reload, mobile, color switch, size reset, disabled stock, separate cart lines, checkout SQL stock decrement and cancellation.')
 } finally {

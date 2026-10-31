@@ -19,6 +19,10 @@ Không chạy lại migration khởi tạo, không reset database, không tạo 
 - Sản phẩm đã chuyển sang tồn kho riêng được sửa số lượng trong bảng màu–size. Trang tổng quan tồn kho dẫn đến trang sửa sản phẩm để tránh ghi đè tổng số lượng.
 - Nếu có khách đặt hàng hoặc admin khác lưu khi bạn đang sửa, thao tác lưu sẽ báo dữ liệu đã thay đổi. Tải lại trang rồi sửa trên số lượng mới nhất.
 
+### Số lượng sản phẩm theo màu
+
+Trong phần Chi tiết thời trang, mỗi màu có mục số lượng riêng. Nếu không có size hoặc chỉ có một size, nhập trực tiếp số lượng của màu đó. Nếu có nhiều size, nhập số lượng vào bảng màu–size; tổng của mỗi màu được cộng và hiển thị tự động. Các ô chưa nhập được ghi rõ Chưa nhập đủ. Tính năng sử dụng dữ liệu biến thể hiện có, không cần chạy migration mới.
+
 ## Dữ liệu và đơn hàng cũ
 
 `products.variant_mode` mặc định là `legacy`. Migration không tự chia tồn kho vì không thể suy ra số lượng thực tế của từng màu–size. Sản phẩm chưa có bản ghi biến thể tiếp tục dùng danh sách màu/size hiện có và tồn kho chung. Nếu trước đây đã có bản ghi biến thể, các tổ hợp hiện có vẫn được kiểm tra; tồn kho null tiếp tục dùng hạn mức chung.
