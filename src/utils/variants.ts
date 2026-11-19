@@ -66,3 +66,21 @@ export function initialVariantStocks(product: Product): Record<string, string> {
   }
   return Object.fromEntries(variants.map(item => [optionKey(item.color, item.size), item.stock === null ? '' : String(item.stock)]))
 }
+
+// Display-only mapping from a free-text color name to a swatch color.
+// Longer phrases come first so "hồng đất" wins over "hồng".
+const SWATCHES: Array<[string, string]> = [
+  ['hong dat', '#c08a7d'], ['hong nude', '#e2bfb3'], ['hong pastel', '#f4c9d0'], ['hong', '#f0a8b8'],
+  ['xanh navy', '#1f2a44'], ['xanh den', '#1f2a44'], ['xanh duong', '#2f5fa8'], ['xanh la', '#4f8a5b'], ['xanh reu', '#6b7a4a'],
+  ['xanh mint', '#a8dcc8'], ['xanh ngoc', '#2fa39a'], ['xanh', '#4a7fb0'],
+  ['xam dam', '#555555'], ['xam nhat', '#c9c9c9'], ['xam', '#9a9a9a'],
+  ['vang nhat', '#f3e3a6'], ['vang dong', '#c9a24b'], ['vang', '#f1c94b'],
+  ['nau', '#7a5638'], ['kem', '#f1e8d6'], ['be', '#d9c7a8'], ['nude', '#d9b8a0'], ['cam', '#e8833a'],
+  ['do dat', '#a4453a'], ['do', '#c0392b'], ['tim', '#8a5ea6'], ['den', '#171717'], ['trang', '#ffffff'], ['bac', '#c0c0c0'],
+]
+const stripAccents = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase().trim()
+
+export function colorSwatch(name: string): string {
+  const text = ` ${stripAccents(name)} `
+  return SWATCHES.find(([key]) => text.includes(` ${key} `))?.[1] ?? '#d8d2cb'
+}

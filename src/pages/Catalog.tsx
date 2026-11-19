@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowRight, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowRight, ChevronDown, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
@@ -22,6 +22,14 @@ export default function Catalog({ kind, special }: { kind?: ProductKind; special
   const categoryParam = params.get('category') || ''
   useEffect(() => { setFilters(current => ({ ...current, category: categoryParam })) }, [categoryParam])
   useEffect(() => { setQuery(search) }, [search])
+  useEffect(() => {
+    if (!filtersOpen) return
+    document.body.style.overflow = 'hidden'
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setFiltersOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey) }
+  }, [filtersOpen])
+
   const title = kind === 'fashion' ? 'Thời trang nữ' : kind === 'beauty' ? 'Mỹ phẩm & làm đẹp' : special === 'new' ? 'Sản phẩm mới' : special === 'sale' ? 'Ưu đãi đặc biệt' : 'Tìm kiếm sản phẩm'
   const description = kind === 'fashion' ? 'Những thiết kế mang nét riêng, để bạn tự tin trong từng khoảnh khắc.' : kind === 'beauty' ? 'Chăm sóc vẻ đẹp của bạn với những lựa chọn tinh tế mỗi ngày.' : special === 'new' ? 'Những điều mới mẻ luôn đáng để chờ đợi.' : special === 'sale' ? 'Những món đồ bạn yêu thích với mức giá dễ mến hơn.' : 'Tìm kiếm theo tên, mã sản phẩm và khám phá điều dành cho bạn.'
 
@@ -57,6 +65,15 @@ export default function Catalog({ kind, special }: { kind?: ProductKind; special
   const submit = (event: FormEvent) => { event.preventDefault(); setParams(query.trim() ? { q: query.trim() } : {}) }
   const categoryOptions = categories.filter(item => !kind || item.kind === kind)
   const activeCount = Object.values(filters).filter(Boolean).length + (search ? 1 : 0)
+  const labelFor = (key: string, value: string | boolean) => {
+    if (key === 'category') return categoryOptions.find(item => item.slug === value || item.id === value)?.name || String(value)
+    if (key === 'size') return `Size ${value}`
+    if (key === 'color') return `Màu ${value}`
+    if (key === 'minPrice') return `Từ ${money(Number(value))}`
+    if (key === 'maxPrice') return `Đến ${money(Number(value))}`
+    if (key === 'sale') return 'Đang giảm giá'
+    return String(value)
+  }
 
   const sidebar = <div className="filter-panel"><div className="filter-panel-head"><h2>Bộ lọc {activeCount > 0 && <span>{activeCount}</span>}</h2><button onClick={clear} type="button">Xóa bộ lọc</button></div>
     <div className="filter-group"><h3>Danh mục</h3><label className="filter-radio"><input type="radio" name="category" checked={!filters.category} onChange={() => update('category', '')} /> Tất cả</label>{categoryOptions.map(category => <label className="filter-radio" key={category.id}><input type="radio" name="category" checked={filters.category === category.slug} onChange={() => update('category', category.slug)} /> {category.name}</label>)}</div>
@@ -66,16 +83,16 @@ export default function Catalog({ kind, special }: { kind?: ProductKind; special
     {sizes.length > 0 && <div className="filter-group"><h3>Kích thước</h3><div className="filter-chips"><button type="button" className={!filters.size ? 'active' : ''} onClick={() => update('size', '')}>Tất cả</button>{sizes.map(size => <button type="button" key={size} className={filters.size === size ? 'active' : ''} onClick={() => update('size', size)}>{size}</button>)}</div></div>}
     {skinTypes.length > 0 && <div className="filter-group"><h3>Loại da</h3><select aria-label="Lọc loại da" value={filters.skinType} onChange={event => update('skinType', event.target.value)}><option value="">Tất cả loại da</option>{skinTypes.map(type => <option key={type}>{type}</option>)}</select></div>}
     <div className="filter-group"><label className="filter-checkbox"><input type="checkbox" checked={filters.sale} onChange={event => update('sale', event.target.checked)} /> Chỉ xem sản phẩm giảm giá</label></div>
-    <button type="button" className="button button-dark mobile-apply" onClick={() => setFiltersOpen(false)}>XEM {filtered.length} SẢN PHẨM <ArrowRight size={17} /></button>
+    <div className="mobile-filter-footer"><button type="button" className="button button-outline mobile-reset" disabled={activeCount === 0} onClick={clear}><RotateCcw size={16} /> ĐẶT LẠI</button><button type="button" className="button button-dark mobile-apply" onClick={() => setFiltersOpen(false)}>XEM {filtered.length} SẢN PHẨM <ArrowRight size={17} /></button></div>
   </div>
 
   return <>
     <section className={`catalog-hero ${kind === 'fashion' ? 'catalog-hero-fashion' : kind === 'beauty' ? 'catalog-hero-beauty' : ''}`}><div className="container-wide"><div className="breadcrumbs"><Link to="/">Trang chủ</Link><span>/</span><span>{title}</span></div><span className="eyebrow">MUSE STORE / THE EDIT</span><h1>{title}<em>.</em></h1><p>{description}</p></div></section>
-    <div className="container-wide catalog-layout"><aside className="catalog-sidebar">{sidebar}</aside><div className="catalog-main"><div className="catalog-toolbar"><span>{loading ? 'Đang tải...' : `${filtered.length} sản phẩm`}</span><div><button className="mobile-filter-trigger" onClick={() => setFiltersOpen(true)}><SlidersHorizontal size={18} /> Bộ lọc {activeCount > 0 && `(${activeCount})`}</button><label className="sort-control">Sắp xếp <select value={sort} onChange={event => setSort(event.target.value)}><option value="newest">Mới nhất</option><option value="price-asc">Giá thấp đến cao</option><option value="price-desc">Giá cao đến thấp</option><option value="best-selling">Bán chạy nhất</option></select><ChevronDown size={15} /></label></div></div>
-      {special === 'search' && <form className="catalog-search" onSubmit={submit}><Search size={19} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Tên hoặc mã sản phẩm" aria-label="Tìm kiếm sản phẩm" /><button type="submit">TÌM KIẾM <ArrowRight size={16} /></button></form>}
-      {activeCount > 0 && <div className="active-filters">{search && <button onClick={() => { setQuery(''); setParams({}) }}>“{search}” <X size={12} /></button>}{Object.entries(filters).filter(([, value]) => value).map(([key, value]) => <button key={key} onClick={() => update(key as keyof Filters, key === 'sale' ? false : '')}>{key === 'minPrice' ? `Từ ${money(Number(value))}` : key === 'maxPrice' ? `Đến ${money(Number(value))}` : key === 'sale' ? 'Đang giảm giá' : String(value)} <X size={12} /></button>)}</div>}
-      {loading ? <div className="product-grid catalog-grid">{Array.from({ length: 8 }, (_, i) => <div className="product-skeleton" key={i}><div /><span /><small /></div>)}</div> : error ? <div className="catalog-error"><p>{error}</p><button className="button button-dark" onClick={() => void refresh()}>THỬ LẠI</button></div> : filtered.length ? <motion.div className="product-grid catalog-grid" layout>{filtered.map((product: Product, index) => <ProductCard key={product.id} product={product} index={index} />)}</motion.div> : <div className="empty-state"><span>NO RESULTS</span><h2>Chưa tìm thấy món đồ phù hợp.</h2><p>Hãy thử một từ khóa hoặc bộ lọc khác nhé.</p><button className="button button-dark" onClick={clear}>XÓA BỘ LỌC <ArrowRight size={17} /></button></div>}
+    <div className="container-wide catalog-layout"><aside className="catalog-sidebar">{sidebar}</aside><div className="catalog-main"><div className="catalog-toolbar"><span>{loading ? 'Đang tải...' : `${filtered.length} sản phẩm`}</span><div><button type="button" className="mobile-filter-trigger" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(true)}><SlidersHorizontal size={17} /> Bộ lọc {activeCount > 0 && <span className="filter-count">{activeCount}</span>}</button><label className="sort-control"><span>Sắp xếp</span><select aria-label="Sắp xếp sản phẩm" value={sort} onChange={event => setSort(event.target.value)}><option value="newest">Mới nhất</option><option value="price-asc">Giá thấp đến cao</option><option value="price-desc">Giá cao đến thấp</option><option value="best-selling">Bán chạy nhất</option></select><ChevronDown size={15} /></label></div></div>
+      {special === 'search' && <form className="catalog-search" onSubmit={submit}><Search size={19} /><input type="search" enterKeyHint="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tên hoặc mã sản phẩm" aria-label="Tìm kiếm sản phẩm" />{query && <button type="button" aria-label="Xóa từ khóa" className="search-clear" onClick={() => { setQuery(''); setParams({}) }}><X size={16} /></button>}<button type="submit">TÌM KIẾM <ArrowRight size={16} /></button></form>}
+      {activeCount > 0 && <div className="active-filters">{search && <button type="button" onClick={() => { setQuery(''); setParams({}) }}>“{search}” <X size={13} /></button>}{Object.entries(filters).filter(([, value]) => value).map(([key, value]) => <button type="button" key={key} onClick={() => update(key as keyof Filters, key === 'sale' ? false : '')}>{labelFor(key, value)} <X size={13} /></button>)}<button type="button" className="clear-all-chip" onClick={clear}>Xóa tất cả</button></div>}
+      {loading ? <div className="product-grid catalog-grid" aria-busy="true" aria-label="Đang tải sản phẩm">{Array.from({ length: 8 }, (_, i) => <div className="product-skeleton" key={i}><div /><span /><small /></div>)}</div> : error ? <div className="catalog-error"><p>{error}</p><button type="button" className="button button-dark" onClick={() => void refresh()}>THỬ LẠI</button></div> : filtered.length ? <motion.div className="product-grid catalog-grid" layout>{filtered.map((product: Product, index) => <ProductCard key={product.id} product={product} index={index} />)}</motion.div> : <div className="empty-state"><span>NO RESULTS</span><h2>Chưa tìm thấy món đồ phù hợp.</h2><p>{activeCount > 0 ? 'Không có sản phẩm nào khớp với bộ lọc đang chọn. Hãy thử bớt điều kiện hoặc xóa bộ lọc.' : 'Danh mục này đang được cập nhật thêm sản phẩm mới.'}</p><div className="empty-actions">{activeCount > 0 && <button type="button" className="button button-dark" onClick={clear}>XÓA BỘ LỌC ({activeCount}) <ArrowRight size={17} /></button>}<Link className={`button ${activeCount > 0 ? 'button-outline' : 'button-dark'}`} to="/san-pham-moi">XEM SẢN PHẨM MỚI {!activeCount && <ArrowRight size={17} />}</Link></div></div>}
     </div></div>
-    <AnimatePresence>{filtersOpen && <div className="mobile-filter-overlay"><motion.div className="filter-backdrop" onClick={() => setFiltersOpen(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} /><motion.div className="filter-drawer" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ duration: .3 }}><div className="filter-drawer-header"><strong>Bộ lọc sản phẩm</strong><button aria-label="Đóng bộ lọc" onClick={() => setFiltersOpen(false)}><X /></button></div>{sidebar}</motion.div></div>}</AnimatePresence>
+    <AnimatePresence>{filtersOpen && <div className="mobile-filter-overlay"><motion.div className="filter-backdrop" onClick={() => setFiltersOpen(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} /><motion.div className="filter-drawer" role="dialog" aria-modal="true" aria-label="Bộ lọc sản phẩm" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'tween', duration: .26 }}><div className="filter-sheet-handle" aria-hidden="true" /><div className="filter-drawer-header"><strong>Bộ lọc sản phẩm {activeCount > 0 && `(${activeCount})`}</strong><button type="button" aria-label="Đóng bộ lọc" onClick={() => setFiltersOpen(false)}><X size={20} /></button></div>{sidebar}</motion.div></div>}</AnimatePresence>
   </>
 }
