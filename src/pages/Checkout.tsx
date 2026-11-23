@@ -30,12 +30,18 @@ export default function Checkout() {
     try {
       const order = await placeOrder({ customer_name: name.trim(), phone: phone.replace(/\s/g, ''), address: address.trim(), notes: notes.trim(), items: cart.map(line => ({ product_id: line.productId, quantity: line.quantity, size: line.size, color: line.color })) })
       setOrderCode(order.code)
+      try {
+        const raw = localStorage.getItem('muse-recent-orders')
+        const prev = raw ? (JSON.parse(raw) as unknown) : []
+        const list = Array.isArray(prev) ? prev.filter((item): item is string => typeof item === 'string' && item !== order.code) : []
+        localStorage.setItem('muse-recent-orders', JSON.stringify([order.code, ...list].slice(0, 5)))
+      } catch {}
       clearCart()
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Không thể đặt hàng. Vui lòng thử lại.') }
     finally { setSubmitting(false) }
   }
 
-  if (orderCode) return <div className="checkout-success container-wide"><CheckCircle2 size={52} strokeWidth={1.2} /><span className="eyebrow">ORDER CONFIRMED</span><h1>Cảm ơn bạn đã<br /><em>chọn MUSE.</em></h1><p>Đơn hàng <strong>{orderCode}</strong> đã được ghi nhận. MUSE sẽ liên hệ với bạn để xác nhận thông tin và phí giao hàng.</p><Link className="button button-dark" to="/">VỀ TRANG CHỦ <ArrowRight size={18} /></Link></div>
+  if (orderCode) return <div className="checkout-success container-wide"><CheckCircle2 size={52} strokeWidth={1.2} /><span className="eyebrow">ORDER CONFIRMED</span><h1>Cảm ơn bạn đã<br /><em>chọn MUSE.</em></h1><p>Đơn hàng <strong>{orderCode}</strong> đã được ghi nhận. MUSE sẽ liên hệ với bạn để xác nhận thông tin và phí giao hàng.</p><div className="checkout-success-actions"><Link className="button button-dark" to={`/theo-doi-don-hang?code=${encodeURIComponent(orderCode)}`}>THEO DÕI ĐƠN HÀNG <ArrowRight size={18} /></Link><Link className="button button-outline" to="/">VỀ TRANG CHỦ</Link></div></div>
   if (!cart.length) return <Navigate to="/gio-hang" replace />
 
   // Display-only helpers below; order total and submit flow above are unchanged.

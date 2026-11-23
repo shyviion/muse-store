@@ -4,7 +4,7 @@ import { validateOptions } from '../utils/variants'
 import type {
   Banner, BannerInput, Category, CategoryInput, DashboardStats, Order,
   OrderStatus, PlaceOrderInput, Product, ProductFilters, ProductImage,
-  ProductInput, ProductVariantInput, Profile, SiteSettings,
+  ProductInput, ProductVariantInput, Profile, SiteSettings, TrackedOrder,
 } from '../types'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -164,6 +164,28 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   })
   fail(error)
   return normalizeOrder(data)
+}
+
+export async function trackOrder(code: string, phone: string): Promise<TrackedOrder | null> {
+  const cleanCode = code.trim()
+  const cleanPhone = phone.replace(/\s+/g, '').trim()
+  if (!cleanCode || !cleanPhone) throw new Error('Vui lòng nhập đầy đủ mã đơn hàng và số điện thoại.')
+  const { data, error } = await client().rpc('track_order', {
+    _code: cleanCode,
+    _phone: cleanPhone,
+  })
+  fail(error)
+  if (!data) return null
+  return {
+    ...data,
+    total: Number(data.total ?? 0),
+    items: (data.items ?? []).map((item: any) => ({
+      ...item,
+      quantity: Number(item.quantity),
+      unit_price: Number(item.unit_price),
+      line_total: Number(item.line_total),
+    })),
+  } as TrackedOrder
 }
 
 export async function getSession(): Promise<Session | null> {

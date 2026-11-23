@@ -158,7 +158,42 @@ export interface Order {
   total: number
   items: OrderItem[]
   created_at: string
+  confirmed_at?: string | null
+  shipping_at?: string | null
+  completed_at?: string | null
+  cancelled_at?: string | null
   updated_at: string
+}
+
+export interface TrackedOrderItem {
+  id: string
+  product_id: string | null
+  product_name: string
+  sku: string
+  image_url: string | null
+  size: string | null
+  color: string | null
+  quantity: number
+  unit_price: number
+  line_total: number
+}
+
+export interface TrackedOrder {
+  code: string
+  customer_name: string
+  masked_phone: string
+  masked_address: string
+  notes: string | null
+  status: OrderStatus
+  payment_method: string
+  total: number
+  created_at: string
+  confirmed_at: string | null
+  shipping_at: string | null
+  completed_at: string | null
+  cancelled_at: string | null
+  updated_at: string
+  items: TrackedOrderItem[]
 }
 
 export interface PlaceOrderInput {

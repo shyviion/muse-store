@@ -11,6 +11,7 @@ import Cart from '../pages/Cart'
 import Checkout from '../pages/Checkout'
 import Favorites from '../pages/Favorites'
 import About from '../pages/About'
+import TrackOrder from '../pages/TrackOrder'
 import NotFound from '../pages/NotFound'
 
 function ScrollToTop() {
@@ -42,6 +43,8 @@ export default function StoreLayout() {
           <Route path="/gio-hang" element={<Cart />} />
           <Route path="/thanh-toan" element={<Checkout />} />
           <Route path="/yeu-thich" element={<Favorites />} />
+          <Route path="/theo-doi-don-hang" element={<TrackOrder />} />
+          <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/gioi-thieu" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
